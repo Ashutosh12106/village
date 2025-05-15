@@ -1,14 +1,26 @@
 import React, { useState } from 'react';
-import { Menu, X, Globe } from 'lucide-react';
+import { Menu, X, Globe, LogIn, LogOut, User } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
+import AuthModal from '../auth/AuthModal';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { language, setLanguage, t } = useLanguage();
+  const { user, signOut } = useAuth();
 
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'hi' : 'en');
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   const menuItems = [
@@ -39,6 +51,7 @@ const Header: React.FC = () => {
                 {t(item.label)}
               </a>
             ))}
+            
             <Button
               onClick={toggleLanguage}
               variant="outline"
@@ -47,6 +60,26 @@ const Header: React.FC = () => {
               <Globe size={16} />
               <span>{language === 'en' ? 'हिंदी' : 'English'}</span>
             </Button>
+
+            {user ? (
+              <Button
+                onClick={handleSignOut}
+                variant="outline"
+                className="flex items-center space-x-2 text-white border-white hover:bg-green-700"
+              >
+                <LogOut size={16} />
+                <span>{t({ en: 'Sign Out', hi: 'साइन आउट' })}</span>
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setIsAuthModalOpen(true)}
+                variant="outline"
+                className="flex items-center space-x-2 text-white border-white hover:bg-green-700"
+              >
+                <LogIn size={16} />
+                <span>{t({ en: 'Sign In', hi: 'साइन इन' })}</span>
+              </Button>
+            )}
           </nav>
 
           {/* Mobile menu button */}
@@ -83,10 +116,33 @@ const Header: React.FC = () => {
                   </a>
                 </li>
               ))}
+              <li>
+                {user ? (
+                  <Button
+                    onClick={handleSignOut}
+                    variant="outline"
+                    className="w-full flex items-center justify-center space-x-2 text-white border-white hover:bg-green-700"
+                  >
+                    <LogOut size={16} />
+                    <span>{t({ en: 'Sign Out', hi: 'साइन आउट' })}</span>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    variant="outline"
+                    className="w-full flex items-center justify-center space-x-2 text-white border-white hover:bg-green-700"
+                  >
+                    <LogIn size={16} />
+                    <span>{t({ en: 'Sign In', hi: 'साइन इन' })}</span>
+                  </Button>
+                )}
+              </li>
             </ul>
           </nav>
         )}
       </div>
+      
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </header>
   );
 };
